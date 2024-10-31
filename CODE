@@ -1,0 +1,110 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <limits.h>
+
+#define MAX_CITIES 1000
+
+// Define a structure to represent a node in the queue
+typedef struct {
+    int city;  // City ID
+    int days;  // Days taken to reach this city
+} Node;
+
+// Define a Queue data structure for BFS
+typedef struct {
+    Node nodes[MAX_CITIES];
+    int front, rear;
+} Queue;
+
+// Queue functions
+void enqueue(Queue* q, int city, int days) {
+    q->nodes[q->rear].city = city;
+    q->nodes[q->rear].days = days;
+    q->rear++;
+}
+
+Node dequeue(Queue* q) {
+    return q->nodes[q->front++];
+}
+
+int is_empty(Queue* q) {
+    return q->front == q->rear;
+}
+
+int main() {
+    int testCases, cities, aerialRoutes;
+
+    printf("Please enter the number of test cases: ");
+    if (scanf("%d", &testCases) != 1) {
+        printf("Invalid input. Please enter an integer.\n");
+        return 1;
+    }
+
+    for (int t = 0; t < testCases; t++) {
+        printf("Please enter the number of cities: ");
+        if (scanf("%d", &cities) != 1) {
+            printf("Invalid input. Please enter an integer.\n");
+            return 1;
+        }
+
+        printf("Please enter the number of aerial routes: ");
+        if (scanf("%d", &aerialRoutes) != 1) {
+            printf("Invalid input. Please enter an integer.\n");
+            return 1;
+        }
+
+        int hasAerialRoute[MAX_CITIES] = {0};
+        int destinationCity[MAX_CITIES] = {0};
+
+        printf("Please enter the source and destination for each aerial route:\n");
+        for (int i = 0; i < aerialRoutes; i++) {
+            int source, destination;
+            if (scanf("%d %d", &source, &destination) != 2) {
+                printf("Invalid input. Please enter two integers for each aerial route.\n");
+                return 1;
+            }
+            hasAerialRoute[source] = 1;
+            destinationCity[source] = destination;
+        }
+
+        int daysToReach[MAX_CITIES];
+        for (int i = 0; i < cities; i++) {
+            daysToReach[i] = INT_MAX;
+        }
+        daysToReach[0] = 0;
+
+        Queue queue = { .front = 0, .rear = 0 };
+        enqueue(&queue, 0, 0);
+
+        while (!is_empty(&queue)) {
+            Node node = dequeue(&queue);
+            int city = node.city;
+            int days = node.days;
+
+            if (city == cities - 1) {
+                break;
+            }
+
+            if (hasAerialRoute[city]) {
+                int nextCity = destinationCity[city];
+                if (days + 1 < daysToReach[nextCity]) {
+                    daysToReach[nextCity] = days + 1;
+                    enqueue(&queue, nextCity, days + 1);
+                }
+                continue;
+            }
+
+            for (int i = city + 1; i <= city + 6 && i < cities; i++) {
+                if (days + 1 < daysToReach[i]) {
+                    daysToReach[i] = days + 1;
+                    enqueue(&queue, i, days + 1);
+                }
+            }
+        }
+
+        printf("Calculating....\n");
+        printf("The minimum number of days to reach the destination city is: %d\n", daysToReach[cities - 1]);
+    }
+
+    return 0;
+}
